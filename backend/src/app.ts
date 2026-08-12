@@ -6,6 +6,7 @@ import customerRoutes from "./routes/customer.routes";
 import invoiceRoutes from "./routes/invoice.routes";
 import expenseRoutes from "./routes/expense.routes";
 import paymentRoutes from "./routes/payment.routes";
+import aiRoutes from "./routes/ai.routes";
 const app = express();
 
 app.use(express.json());
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
  app.use('/api/expenses', expenseRoutes);
  app.use('/api/payments', paymentRoutes);
  app.use('/api/invoices', invoiceRoutes);
+ app.use('/api/ai', aiRoutes);
 
 // Error handling middleware
 

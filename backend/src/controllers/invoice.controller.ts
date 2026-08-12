@@ -9,9 +9,9 @@ import Invoice, {
 import Customer from "../models/Customer";
 import { AuthRequest } from "../middleware/auth.middleware";
 
-// ============================================================
+
 // HELPERS
-// ============================================================
+
 
 const isNonEmptyString = (value: unknown): value is string => {
   return typeof value === "string" && value.trim().length > 0;
@@ -32,9 +32,7 @@ const roundMoney = (value: number): number => {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 };
 
-// ============================================================
 // CALCULATE INVOICE
-// ============================================================
 
 const calculateInvoice = (
   items: IInvoiceItem[],
@@ -68,9 +66,7 @@ const calculateInvoice = (
   };
 };
 
-// ============================================================
 // DETERMINE STATUS
-// ============================================================
 
 const calculateStatus = (
   total: number,
@@ -106,10 +102,8 @@ const calculateStatus = (
   return "sent";
 };
 
-// ============================================================
 // CREATE INVOICE
 // POST /api/invoices
-// ============================================================
 
 export const createInvoice = async (
   req: AuthRequest,
@@ -465,10 +459,8 @@ export const createInvoice = async (
   }
 };
 
-// ============================================================
 // GET ALL INVOICES
 // GET /api/invoices
-// ============================================================
 
 export const getInvoices = async (
   req: AuthRequest,
@@ -608,10 +600,8 @@ export const getInvoices = async (
   }
 };
 
-// ============================================================
 // GET INVOICE BY ID
 // GET /api/invoices/:id
-// ============================================================
 
 export const getInvoiceById = async (
   req: AuthRequest,
@@ -679,10 +669,8 @@ export const getInvoiceById = async (
   }
 };
 
-// ============================================================
 // UPDATE INVOICE
 // PUT /api/invoices/:id
-// ============================================================
 
 export const updateInvoice = async (
   req: AuthRequest,
@@ -1103,10 +1091,8 @@ export const updateInvoice = async (
   }
 };
 
-// ============================================================
 // DELETE / CANCEL INVOICE
 // DELETE /api/invoices/:id
-// ============================================================
 
 export const deleteInvoice = async (
   req: AuthRequest,
@@ -1215,10 +1201,8 @@ export const deleteInvoice = async (
   }
 };
 
-// ============================================================
 // UPDATE STATUS
 // PATCH /api/invoices/:id/status
-// ============================================================
 
 export const updateInvoiceStatus = async (
   req: AuthRequest,
@@ -1346,10 +1330,8 @@ export const updateInvoiceStatus = async (
   }
 };
 
-// ============================================================
 // SEND INVOICE
 // PATCH /api/invoices/:id/send
-// ============================================================
 
 export const sendInvoice = async (
   req: AuthRequest,
