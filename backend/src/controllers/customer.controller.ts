@@ -4,9 +4,7 @@ import Customer, { ICustomer } from "../models/Customer";
 import User from "../models/user";
 import { AuthRequest } from "../middleware/auth.middleware";
 
-// ======================================================
 // HELPERS
-// ======================================================
 
 const isNonEmptyString = (value: unknown): value is string => {
   return typeof value === "string" && value.trim().length > 0;
@@ -23,10 +21,8 @@ const isValidEmail = (email: string): boolean => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-// ======================================================
 // CREATE CUSTOMER
 // POST /api/customers
-// ======================================================
 
 export const createCustomer = async (
   req: AuthRequest,
@@ -185,10 +181,8 @@ export const createCustomer = async (
   }
 };
 
-// ======================================================
 // GET ALL CUSTOMERS
 // GET /api/customers
-// ======================================================
 
 export const getCustomers = async (
   req: AuthRequest,
@@ -290,10 +284,8 @@ export const getCustomers = async (
   }
 };
 
-// ======================================================
 // GET CUSTOMER BY ID
 // GET /api/customers/:id
-// ======================================================
 
 export const getCustomerById = async (
   req: AuthRequest,
@@ -351,10 +343,8 @@ export const getCustomerById = async (
   }
 };
 
-// ======================================================
 // UPDATE CUSTOMER
 // PUT /api/customers/:id
-// ======================================================
 
 export const updateCustomer = async (
   req: AuthRequest,
@@ -523,10 +513,8 @@ export const updateCustomer = async (
   }
 };
 
-// ======================================================
 // DELETE CUSTOMER
 // DELETE /api/customers/:id
-// ======================================================
 
 export const deleteCustomer = async (
   req: AuthRequest,
@@ -590,10 +578,8 @@ export const deleteCustomer = async (
   }
 };
 
-// ======================================================
 // RESTORE CUSTOMER
 // PATCH /api/customers/:id/restore
-// ======================================================
 
 export const restoreCustomer = async (
   req: AuthRequest,
