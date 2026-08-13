@@ -1,14 +1,16 @@
-import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import OpenAI from "openai";
 
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.OPENROUTER_API_KEY;
 
 if (!apiKey) {
-  throw new Error("GEMINI_API_KEY lagama helin .env");
+  throw new Error("OPENROUTER_API_KEY lagama helin .env");
 }
 
-export const genAI = new GoogleGenAI({
-  apiKey,
+// OpenRouter wuxuu isticmaalaa OpenAI SDK
+export const ai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: apiKey,
 });
