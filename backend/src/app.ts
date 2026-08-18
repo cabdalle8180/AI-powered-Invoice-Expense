@@ -7,12 +7,18 @@ import invoiceRoutes from "./routes/invoice.routes";
 import expenseRoutes from "./routes/expense.routes";
 import paymentRoutes from "./routes/payment.routes";
 import aiRoutes from "./routes/ai.routes";
+import cors from "cors";
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+// Enable CORS for all routes
+app.use(cors({
+  origin: "http://localhost:5173", // Adjust this to your frontend's URL
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+}));
 // Routes
  app.use("/api/auth", authRoutes);
  app.use("/api/users", userRoutes); 
