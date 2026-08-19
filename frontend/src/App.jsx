@@ -10,6 +10,7 @@ import Overview from "./components/Overview";
 import { Customers } from "./pages/Customers";
 import InvoicesPage from "./pages/InvoicesPage";
 import ExpensesPage from "./pages/ExpensesPage";
+import PaymentsPage from "./pages/PaymentsPage";
 
 function App() {
   return (
@@ -40,6 +41,9 @@ function App() {
 
           {/* expenses */}
           <Route path="/expenses" element={<ExpensesPage />} />
+
+          {/* payments */}
+          <Route path="/payments" element={<PaymentsPage />} />
 
         </Route>
       </Route>
