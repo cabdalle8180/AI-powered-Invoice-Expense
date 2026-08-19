@@ -9,6 +9,7 @@ import Overview from "./components/Overview";
 
 import { Customers } from "./pages/Customers";
 import InvoicesPage from "./pages/InvoicesPage";
+import ExpensesPage from "./pages/ExpensesPage";
 
 function App() {
   return (
@@ -36,6 +37,9 @@ function App() {
 
           {/* Invoices */}
           <Route path="/invoices" element={<InvoicesPage />} />
+
+          {/* expenses */}
+          <Route path="/expenses" element={<ExpensesPage />} />
 
         </Route>
       </Route>

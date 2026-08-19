@@ -4,6 +4,7 @@ import invoiceService from "../api/invoiceService";
 import type { Invoice } from "../api/invoiceService";
 import { CreateInvoiceModal } from "../components/CreateInvoiceModal";
 import { InvoiceTable } from "../components/InvoiceTable";
+// import InvoiceTable from "../components/InvoiceTable";
 
 export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -127,3 +128,4 @@ export const InvoicesPage: React.FC = () => {
 };
 
 export default InvoicesPage;
+
