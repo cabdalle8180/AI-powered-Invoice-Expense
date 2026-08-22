@@ -26,7 +26,13 @@ import {
   Download
 } from 'lucide-react';
 
+import { usePermission } from "../hooks/usePermission";
+
 export const Customers: React.FC = () => {
+  const { can } = usePermission();
+  const canCreate = can("customer:create");
+  const canUpdate = can("customer:update");
+  const canDelete = can("customer:delete");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -44,8 +50,12 @@ export const Customers: React.FC = () => {
   const [formData, setFormData] = useState<CreateCustomerData>({
     name: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     phone: '',
-    companyName: ''
+    address: '',
+    position: 'customer',
+    taxNumber: '',
   });
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -83,7 +93,16 @@ export const Customers: React.FC = () => {
   // Open Modal for Create
   const handleOpenCreateModal = () => {
     setEditingCustomer(null);
-    setFormData({ name: '', email: '', phone: '', companyName: '' });
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      phone: '',
+      address: '',
+      position: 'customer',
+      taxNumber: '',
+    });
     setErrorMsg('');
     setIsModalOpen(true);
   };
@@ -95,7 +114,9 @@ export const Customers: React.FC = () => {
       name: customer.name,
       email: customer.email,
       phone: customer.phone || '',
-      companyName: customer.companyName || ''
+      address: customer.address || '',
+      position: customer.position || 'customer',
+      taxNumber: customer.taxNumber || '',
     });
     setErrorMsg('');
     setIsModalOpen(true);
@@ -107,14 +128,30 @@ export const Customers: React.FC = () => {
     setErrorMsg('');
     try {
       if (editingCustomer) {
-        // Update Action
-        await updateCustomer(editingCustomer._id, formData as UpdateCustomerData);
+        const { password, confirmPassword, ...updateData } = formData;
+        await updateCustomer(editingCustomer._id, updateData as UpdateCustomerData);
       } else {
-        // Create Action
+        if (!formData.password || !formData.confirmPassword) {
+          setErrorMsg('Password and confirm password are required.');
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          setErrorMsg('Passwords do not match.');
+          return;
+        }
         await createCustomer(formData);
       }
       setIsModalOpen(false);
-      setFormData({ name: '', email: '', phone: '', companyName: '' });
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        phone: '',
+        address: '',
+        position: 'customer',
+        taxNumber: '',
+      });
       setEditingCustomer(null);
       refetch();
     } catch (err) {
@@ -169,12 +206,14 @@ export const Customers: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900">Macaamiisha (Customers)</h1>
             <p className="text-sm text-slate-500 mt-1">Maaree macluumaadka macaamiishaada iyo xaaladahooda</p>
           </div>
+          {canCreate && (
           <button
             onClick={handleOpenCreateModal}
             className="bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
           >
             <Plus size={18} /> Ku dar Macaamil
           </button>
+          )}
         </div>
 
         {/* KPI Stats Cards */}
@@ -252,7 +291,7 @@ export const Customers: React.FC = () => {
                     <th className="py-3.5 px-6">Magaca Macaamilka</th>
                     <th className="py-3.5 px-6">Email</th>
                     <th className="py-3.5 px-6">Telefoonka</th>
-                    <th className="py-3.5 px-6">Shirkadda</th>
+                    <th className="py-3.5 px-6">Position</th>
                     <th className="py-3.5 px-6 text-center">Xaalka (Status)</th>
                     <th className="py-3.5 px-6 text-right">Aksyon (Actions)</th>
                   </tr>
@@ -287,7 +326,7 @@ export const Customers: React.FC = () => {
                         <td className="py-4 px-6 text-slate-600 font-medium">{c.phone || '-'}</td>
 
                         {/* Company */}
-                        <td className="py-4 px-6 text-slate-600 font-medium">{c.companyName || '-'}</td>
+                        <td className="py-4 px-6 text-slate-600 font-medium capitalize">{c.position || 'customer'}</td>
 
                         {/* Status Badge */}
                         <td className="py-4 px-6 text-center">
@@ -302,6 +341,7 @@ export const Customers: React.FC = () => {
                         <td className="py-4 px-6 text-right">
                           <div className="flex items-center justify-end gap-1">
                             {/* Edit Button */}
+                            {canUpdate && (
                             <button
                               onClick={() => handleOpenEditModal(c)}
                               className="p-2 hover:bg-sky-50 text-slate-400 hover:text-sky-600 rounded-lg transition cursor-pointer"
@@ -309,9 +349,11 @@ export const Customers: React.FC = () => {
                             >
                               <Pencil size={16} />
                             </button>
+                            )}
 
                             {/* Delete / Restore Button */}
-                            {c.isActive ? (
+                            {canDelete && (
+                            c.isActive ? (
                               <button
                                 onClick={() => handleDelete(c._id)}
                                 className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition cursor-pointer"
@@ -327,6 +369,7 @@ export const Customers: React.FC = () => {
                               >
                                 <RotateCcw size={16} />
                               </button>
+                            )
                             )}
                           </div>
                         </td>
@@ -403,6 +446,32 @@ export const Customers: React.FC = () => {
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
                 />
               </div>
+              {!editingCustomer && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Password *</label>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      value={formData.password || ''}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Confirm Password *</label>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      value={formData.confirmPassword || ''}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Telefoonka</label>
                 <input
@@ -413,11 +482,37 @@ export const Customers: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Magaca Shirkadda</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Cinwaanka</label>
                 <input
                   type="text"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  value={formData.address || ''}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Position</label>
+                <select
+                  value={formData.position || 'customer'}
+                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
+                >
+                  <option value="customer">Customer</option>
+                  <option value="Shop Owner">Shop Owner</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Cashier">Cashier</option>
+                  <option value="Accountant">Accountant</option>
+                  <option value="Employee">Employee</option>
+                  <option value="Director">Director</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Tax Number</label>
+                <input
+                  type="text"
+                  value={formData.taxNumber || ''}
+                  onChange={(e) => setFormData({ ...formData, taxNumber: e.target.value })}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
                 />
               </div>

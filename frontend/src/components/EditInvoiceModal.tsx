@@ -125,7 +125,7 @@
 //                 </option>
 //                 {customers.map((cust) => (
 //                   <option key={cust._id} value={cust._id}>
-//                     {cust.name} {cust.companyName ? `(${cust.companyName})` : ""}
+//                     {cust.name}
 //                   </option>
 //                 ))}
 //               </select>
@@ -328,7 +328,10 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({
       fetchCustomers();
 
       setFormData({
-        customerId: typeof invoice.customerId === "object" ? invoice.customerId._id : invoice.customerId,
+        customerId:
+          typeof invoice.customerId === "object"
+            ? invoice.customerId._id || ""
+            : invoice.customerId,
         invoiceNumber: invoice.invoiceNumber,
         issueDate: invoice.issueDate ? new Date(invoice.issueDate).toISOString().split("T")[0] : "",
         dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString().split("T")[0] : "",
@@ -415,7 +418,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({
                 </option>
                 {customers.map((cust) => (
                   <option key={cust._id} value={cust._id}>
-                    {cust.name} {cust.companyName ? `(${cust.companyName})` : ""}
+                    {cust.name}
                   </option>
                 ))}
               </select>

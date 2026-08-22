@@ -1,38 +1,81 @@
 import { Router } from "express";
-
 import {
   createCustomer,
   getCustomers,
+  getCustomerMe,
+  updateCustomerMe,
   getCustomerById,
   updateCustomer,
   deleteCustomer,
   restoreCustomer,
+  toggleCustomerStatus,
 } from "../controllers/customer.controller";
-
 import { protect } from "../middleware/auth.middleware";
+import { authorize } from "../middleware/role.middleware";
 
 const router = Router();
 
-// ======================================================
-// CUSTOMER ROUTES
-// ======================================================
+router.post(
+  "/",
+  protect,
+  authorize("owner"),
+  createCustomer
+);
 
-// Create customer
-router.post("/", protect, createCustomer);
+router.get(
+  "/me",
+  protect,
+  authorize("customer"),
+  getCustomerMe
+);
 
-// Get all customers
-router.get("/", protect, getCustomers);
+router.put(
+  "/me",
+  protect,
+  authorize("customer"),
+  updateCustomerMe
+);
 
-// Get single customer
-router.get("/:id", protect, getCustomerById);
+router.get(
+  "/",
+  protect,
+  authorize("owner", "accountant", "staff"),
+  getCustomers
+);
 
-// Update customer
-router.put("/:id", protect, updateCustomer);
+router.get(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant", "staff", "customer"),
+  getCustomerById
+);
 
-// Soft delete / deactivate
-router.delete("/:id", protect, deleteCustomer);
+router.put(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  updateCustomer
+);
 
-// Restore customer
-router.patch("/:id/restore", protect, restoreCustomer);
+router.delete(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  deleteCustomer
+);
+
+router.patch(
+  "/:id/status",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  toggleCustomerStatus
+);
+
+router.patch(
+  "/:id/restore",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  restoreCustomer
+);
 
 export default router;

@@ -1,9 +1,9 @@
-import api from "../service/api"; // Faylkii axios aad ku samaysay
+import api from "../service/api";
 import type { 
-  ExpenseCategory, 
   CreateExpenseInput, 
   UpdateExpenseInput 
 } from "../types/expense.types";
+
 // 1. Soo hel kharashaadka (Get all expenses with filters)
 export const getExpenses = async (page = 1, limit = 10, search = "", startDate = "", endDate = "") => {
   const response = await api.get(`/expenses`, {
@@ -19,21 +19,13 @@ export const getExpenseById = async (id: string) => {
 };
 
 // 3. Samee kharash cusub (Create expense)
-export const createExpense = async (expenseData: {
-  title: string;
-  amount: number;
-  category?: ExpenseCategory;
-  expenseDate?: string;
-  paymentMethod?: string;
-  vendor?: string;
-  notes?: string;
-}) => {
+export const createExpense = async (expenseData: CreateExpenseInput) => {
   const response = await api.post(`/expenses`, expenseData);
   return response.data;
 };
 
 // 4. Update garee kharash (Update expense)
-export const updateExpense = async (id: string, updateData: any) => {
+export const updateExpense = async (id: string, updateData: UpdateExpenseInput) => {
   const response = await api.put(`/expenses/${id}`, updateData);
   return response.data;
 };

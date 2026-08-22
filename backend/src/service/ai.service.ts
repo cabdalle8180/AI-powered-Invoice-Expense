@@ -122,8 +122,19 @@ Return ONLY valid JSON matching the exact structure above.
       throw new Error("AI-gu wax xog ah kama soo saarin faylkan.");
     }
 
-    return JSON.parse(textResult);
-  } catch (error: any) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(textResult);
+    } catch {
+      throw new Error("AI-gu soo celiyay xog aan sax ahayn (JSON invalid).");
+    }
+
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("AI-gu soo celiyay xog aan sax ahayn.");
+    }
+
+    return parsed as Record<string, unknown>;
+  } catch (error) {
     console.error("AI ERROR:", error);
 
     throw new Error(

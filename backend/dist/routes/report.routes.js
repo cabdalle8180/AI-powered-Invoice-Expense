@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const report_controller_1 = require("../controllers/report.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const role_middleware_1 = require("../middleware/role.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.protect);
+router.get("/summary", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getReportsSummary);
+router.get("/invoices", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getInvoiceReport);
+router.get("/expenses", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getExpenseReport);
+router.get("/payments", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getPaymentReport);
+router.get("/customers", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getCustomerReport);
+router.get("/revenue", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getRevenueReport);
+router.get("/outstanding", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), report_controller_1.getOutstandingReport);
+exports.default = router;

@@ -8,6 +8,8 @@ import Invoice, {
 
 import Customer from "../models/Customer";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { getCustomerRecordForUser } from "../utils/tenantScope";
+import { normalizeRole } from "../constants/roles";
 
 
 // HELPERS
@@ -515,9 +517,31 @@ export const getInvoices = async (
         ? req.query.customerId
         : undefined;
 
-    const filter: Record<string, any> = {
+    const filter: Record<string, unknown> = {
       businessId,
     };
+
+    if (normalizeRole(req.user?.role || "customer") === "customer") {
+      const customerRecord = await getCustomerRecordForUser(req);
+      if (!customerRecord) {
+        res.status(403).json({
+          success: false,
+          message: "No customer profile linked to this account",
+        });
+        return;
+      }
+      filter.customerId = customerRecord._id;
+    } else if (customerId) {
+      if (!isValidObjectId(customerId)) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid customer ID",
+        });
+        return;
+      }
+
+      filter.customerId = customerId;
+    }
 
     // Status
     if (status) {
@@ -539,19 +563,6 @@ export const getInvoices = async (
       }
     }
 
-    // Customer
-    if (customerId) {
-      if (!isValidObjectId(customerId)) {
-        res.status(400).json({
-          success: false,
-          message: "Invalid customer ID",
-        });
-        return;
-      }
-
-      filter.customerId = customerId;
-    }
-
     // Search invoice number
     if (search) {
       filter.invoiceNumber = {
@@ -568,7 +579,7 @@ export const getInvoices = async (
       Invoice.find(filter)
         .populate(
           "customerId",
-          "name email phone companyName"
+          "name email phone"
         )
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -632,7 +643,7 @@ export const getInvoiceById = async (
       businessId,
     }).populate(
       "customerId",
-      "name email phone address companyName taxNumber"
+      "name email phone address taxNumber"
     );
 
     if (!invoice) {
@@ -641,6 +652,23 @@ export const getInvoiceById = async (
         message: "Invoice not found",
       });
       return;
+    }
+
+    if (normalizeRole(req.user?.role || "customer") === "customer") {
+      const customerRecord = await getCustomerRecordForUser(req);
+      const invoiceCustomerId =
+        (invoice.customerId as any)?._id?.toString() ||
+        invoice.customerId?.toString();
+      if (
+        !customerRecord ||
+        invoiceCustomerId !== customerRecord._id.toString()
+      ) {
+        res.status(403).json({
+          success: false,
+          message: "You do not have permission to access this invoice",
+        });
+        return;
+      }
     }
 
     // Automatically report overdue

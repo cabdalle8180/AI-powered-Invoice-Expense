@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User, { UserRole, USER_ROLES } from "../models/user";
+import User from "../models/user";
+import Customer from "../models/Customer";
+import Business from "../models/Business";
+import { OfficialRole, USER_ROLES, normalizeRole } from "../constants/roles";
 
 export interface AuthUser {
   userId: string;
-  role: UserRole;
+  role: OfficialRole;
   businessId?: string;
+  customerId?: string;
 }
 
 export interface AuthRequest extends Request {
@@ -14,7 +18,7 @@ export interface AuthRequest extends Request {
 
 interface JwtPayload {
   userId: string;
-  role: UserRole;
+  role: string;
 }
 
 export const protect = async (
@@ -76,7 +80,7 @@ export const protect = async (
     }
 
     // 6. Validate role from token against centralized USER_ROLES
-    if (!USER_ROLES.includes(decoded.role)) {
+    if (!(USER_ROLES as readonly string[]).includes(decoded.role)) {
       res.status(401).json({
         success: false,
         message: "Invalid user role",
@@ -86,7 +90,7 @@ export const protect = async (
 
     // 7. Get current user from database
     const user = await User.findById(decoded.userId).select(
-      "_id role businessId isActive"
+      "_id role businessId customerId isActive"
     );
 
     if (!user) {
@@ -106,11 +110,55 @@ export const protect = async (
       return;
     }
 
-    // 9. Attach database values to request object
+    const normalizedRole = normalizeRole(user.role);
+    let customerId = user.customerId?.toString();
+
+    if (normalizedRole === "customer" && !customerId && user.businessId) {
+      const linkedCustomer = await Customer.findOne({
+        userId: user._id,
+        businessId: user.businessId,
+        isActive: true,
+      }).select("_id");
+
+      customerId = linkedCustomer?._id.toString();
+    }
+
+    if (normalizedRole === "customer" && user.businessId) {
+      const customerRecord = await Customer.findOne({
+        userId: user._id,
+        businessId: user.businessId,
+      }).select("isActive");
+
+      if (!customerRecord || !customerRecord.isActive) {
+        res.status(403).json({
+          success: false,
+          message: "Your customer account has been deactivated",
+        });
+        return;
+      }
+    }
+
+    if (
+      normalizedRole !== "superAdmin" &&
+      user.businessId
+    ) {
+      const business = await Business.findById(user.businessId).select("isActive");
+
+      if (!business || !business.isActive) {
+        res.status(403).json({
+          success: false,
+          message: "Your business account has been deactivated",
+        });
+        return;
+      }
+    }
+
+    // 9. Attach database values to request object (normalized role for RBAC)
     req.user = {
       userId: user._id.toString(),
-      role: user.role,
+      role: normalizedRole,
       businessId: user.businessId?.toString(),
+      customerId,
     };
 
     // 10. Continue

@@ -1,24 +1,27 @@
 import { Router } from "express";
 import { protect } from "../middleware/auth.middleware";
 import { authorize } from "../middleware/role.middleware";
+import { upload } from "../middleware/upload.middleware";
 import {
   createBusiness,
   getBusinesses,
   getBusinessById,
   updateBusiness,
   toggleBusinessStatus,
+  uploadBusinessLogo,
 } from "../controllers/business.controller";
 
 const router = Router();
 
 /**
  * @route   POST /api/businesses
- * @desc    Create a new business (Caller automatically becomes the owner)
- * @access  Private (Any authenticated user)
+ * @desc    Create a new business
+ * @access  Private (SuperAdmin)
  */
 router.post(
-  "/", 
-  protect,authorize("superAdmin"),
+  "/",
+  protect,
+  authorize("superAdmin"),
   createBusiness
 );
 
@@ -28,9 +31,9 @@ router.post(
  * @access  Private (SuperAdmin, Owner, Accountant)
  */
 router.get(
-  "/", 
-  protect, 
-  authorize("superAdmin", "owner", "accountant"), 
+  "/",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
   getBusinesses
 );
 
@@ -40,9 +43,9 @@ router.get(
  * @access  Private (SuperAdmin, Owner, Accountant)
  */
 router.get(
-  "/:id", 
-  protect, 
-  authorize("superAdmin", "owner", "accountant"), 
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
   getBusinessById
 );
 
@@ -52,10 +55,23 @@ router.get(
  * @access  Private (SuperAdmin, Owner)
  */
 router.put(
-  "/:id", 
-  protect, 
-  authorize("superAdmin", "owner"), 
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner"),
   updateBusiness
+);
+
+/**
+ * @route   POST /api/businesses/:id/logo
+ * @desc    Upload or replace business logo
+ * @access  Private (SuperAdmin, Owner)
+ */
+router.post(
+  "/:id/logo",
+  protect,
+  authorize("superAdmin", "owner"),
+  upload.single("logo"),
+  uploadBusinessLogo
 );
 
 /**
@@ -64,9 +80,9 @@ router.put(
  * @access  Private (SuperAdmin only)
  */
 router.patch(
-  "/:id/status", 
-  protect, 
-  authorize("superAdmin"), 
+  "/:id/status",
+  protect,
+  authorize("superAdmin"),
   toggleBusinessStatus
 );
 

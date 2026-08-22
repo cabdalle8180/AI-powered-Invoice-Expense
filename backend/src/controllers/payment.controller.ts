@@ -197,7 +197,7 @@
 
 //     const [payments, total] = await Promise.all([
 //       Payment.find(filter)
-//         .populate("customerId", "name email companyName")
+//         .populate("customerId", "name email")
 //         .populate("invoiceId", "invoiceNumber total balanceDue")
 //         .populate("createdById", "name email")
 //         .sort({ paymentDate: -1 })
@@ -346,6 +346,8 @@ import Payment, { PaymentMethod } from "../models/Payment";
 import Invoice from "../models/Invoice";
 import Customer from "../models/Customer";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { getCustomerRecordForUser } from "../utils/tenantScope";
+import { normalizeRole } from "../constants/roles";
 
 // Helper function to avoid JS floating-point issues
 const roundMoney = (value: number): number => {
@@ -506,13 +508,26 @@ export const getPayments = async (
     const { invoiceId, customerId, paymentMethod } = req.query;
     const filter: Record<string, any> = { businessId, isVoided: false };
 
+    if (normalizeRole(req.user?.role || "customer") === "customer") {
+      const customerRecord = await getCustomerRecordForUser(req);
+      if (!customerRecord) {
+        res.status(403).json({
+          success: false,
+          message: "No customer profile linked to this account",
+        });
+        return;
+      }
+      filter.customerId = customerRecord._id;
+    } else if (isValidObjectId(customerId)) {
+      filter.customerId = customerId;
+    }
+
     if (isValidObjectId(invoiceId)) filter.invoiceId = invoiceId;
-    if (isValidObjectId(customerId)) filter.customerId = customerId;
     if (paymentMethod) filter.paymentMethod = paymentMethod;
 
     const [payments, total] = await Promise.all([
       Payment.find(filter)
-        .populate("customerId", "name email companyName")
+        .populate("customerId", "name email")
         .populate("invoiceId", "invoiceNumber total balanceDue")
         .populate("createdById", "name email")
         .sort({ paymentDate: -1 })

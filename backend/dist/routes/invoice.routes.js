@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const role_middleware_1 = require("../middleware/role.middleware");
+const invoice_controller_1 = require("../controllers/invoice.controller");
+const router = (0, express_1.Router)();
+router.post("/", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), invoice_controller_1.createInvoice);
+router.get("/", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff", "customer"), invoice_controller_1.getInvoices);
+router.get("/:id", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff", "customer"), invoice_controller_1.getInvoiceById);
+router.put("/:id", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), invoice_controller_1.updateInvoice);
+router.delete("/:id", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), invoice_controller_1.deleteInvoice);
+router.patch("/:id/status", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), invoice_controller_1.updateInvoiceStatus);
+router.patch("/:id/send", auth_middleware_1.protect, (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), invoice_controller_1.sendInvoice);
+exports.default = router;

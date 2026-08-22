@@ -236,6 +236,11 @@ invoiceSchema.index({
   dueDate: 1,
 });
 
+invoiceSchema.index({
+  businessId: 1,
+  issueDate: -1,
+});
+
 const Invoice = mongoose.model<IInvoice>(
   "Invoice",
   invoiceSchema

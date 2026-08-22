@@ -4,12 +4,19 @@ export interface Customer {
   name: string; 
   email: string; 
   phone?: string; 
-  companyName?: string; 
+  address?: string;
+  position?: string;
+  taxNumber?: string;
   isActive: boolean; 
   totalInvoiced: number; 
   totalPaid: number; 
   outstandingBalance: number; 
 } 
+
+export interface CustomerMeResponse {
+  success: boolean;
+  data: { customer: Customer };
+}
  
 export interface CustomersResponse { 
   success: boolean; 
@@ -27,12 +34,15 @@ export interface CustomersResponse {
 export interface CreateCustomerData { 
   name: string; 
   email: string; 
+  password?: string;
+  confirmPassword?: string;
   phone?: string; 
   address?: string; 
-  companyName?: string; 
+  position?: string;
   taxNumber?: string; 
-  userId?: string; 
 } 
+
+export type UpdateCustomerData = Partial<CreateCustomerData>; 
  
 // GET ALL CUSTOMERS 
 export const getCustomers = async ( 
@@ -48,6 +58,16 @@ export const getCustomers = async (
   return response.data; 
 }; 
  
+export const getCustomerMe = async (): Promise<CustomerMeResponse> => {
+  const response = await api.get<CustomerMeResponse>('/customers/me');
+  return response.data;
+};
+
+export const updateCustomerMe = async (data: Partial<CreateCustomerData>) => {
+  const response = await api.put('/customers/me', data);
+  return response.data;
+};
+
 // CREATE CUSTOMER 
 export const createCustomer = async (data: CreateCustomerData) => { 
   const response = await api.post('/customers', data); 
@@ -66,6 +86,12 @@ export const deleteCustomer = async (id: string) => {
   return response.data; 
 }; 
  
+// TOGGLE CUSTOMER STATUS
+export const toggleCustomerStatus = async (id: string, isActive: boolean) => {
+  const response = await api.patch(`/customers/${id}/status`, { isActive });
+  return response.data;
+};
+
 // RESTORE CUSTOMER 
 export const restoreCustomer = async (id: string) => { 
   const response = await api.patch(`/customers/${id}/restore`); 

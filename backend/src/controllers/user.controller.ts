@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import User, { IUser, UserRole, USER_ROLES } from "../models/user";
+import User, { IUser } from "../models/user";
+import { UserRole, USER_ROLES } from "../constants/roles";
 import generateToken from "../utils/generateToken";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { uploadToCloudinary, deleteFromCloudinary } from "../service/cloudinary.service";
 
 // ============================================================================
 // HELPERS
@@ -25,10 +27,106 @@ const sanitizeUser = (user: IUser) => ({
   phone: user.phone,
   role: user.role,
   businessId: user.businessId,
+  customerId: user.customerId,
+  avatar: user.avatar || null,
   isActive: user.isActive,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
+
+/**
+ * @route   POST /api/users/me/avatar
+ * @desc    Upload or replace user avatar via Cloudinary
+ * @access  Private
+ */
+export const uploadAvatar = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ success: false, message: "Authentication required" });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ success: false, message: "No file uploaded" });
+      return;
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    const oldPublicId = user.avatar?.public_id;
+
+    // 1. Upload new avatar to Cloudinary first
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "invoice-tracker/avatars"
+    );
+
+    // 2. Save new Cloudinary URL and public ID to DB
+    user.avatar = { url: result.url, public_id: result.public_id };
+    await user.save();
+
+    // 3. Delete previous Cloudinary image if it exists and differs
+    if (oldPublicId && oldPublicId !== result.public_id) {
+      await deleteFromCloudinary(oldPublicId);
+    }
+
+    // 4. Return updated user information
+    res.status(200).json({
+      success: true,
+      message: "Avatar uploaded successfully",
+      data: { user: sanitizeUser(user) },
+    });
+  } catch (error) {
+    console.error("UploadAvatar error:", error);
+    res.status(500).json({ success: false, message: "Failed to upload avatar" });
+  }
+};
+
+/**
+ * @route   DELETE /api/users/me/avatar
+ * @desc    Remove user avatar from Cloudinary and DB
+ * @access  Private
+ */
+export const deleteAvatar = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ success: false, message: "Authentication required" });
+      return;
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    if (user.avatar?.public_id) {
+      await deleteFromCloudinary(user.avatar.public_id);
+    }
+
+    user.avatar = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Avatar removed successfully",
+      data: { user: sanitizeUser(user) },
+    });
+  } catch (error) {
+    console.error("DeleteAvatar error:", error);
+    res.status(500).json({ success: false, message: "Failed to remove avatar" });
+  }
+};
 
 
 
@@ -209,6 +307,14 @@ export const createUser = async (
       return;
     }
 
+    if (role === "customer") {
+      res.status(400).json({
+        success: false,
+        message: "Customers must be created via POST /api/customers",
+      });
+      return;
+    }
+
     const currentUserRole = req.user?.role;
     const currentUserBusinessId = req.user?.businessId;
 
@@ -275,7 +381,9 @@ export const getUsers = async (
 
     const { search, role, isActive } = req.query;
 
-    const filter: Record<string, any> = {};
+    const filter: Record<string, unknown> = {
+      role: { $ne: "customer" },
+    };
 
     // Multi-tenant scoping: Non-superAdmins can only view users in their business
     if (req.user?.role !== "superAdmin") {

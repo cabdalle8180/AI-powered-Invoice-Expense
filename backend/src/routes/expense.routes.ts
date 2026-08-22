@@ -11,12 +11,35 @@ import { authorize } from "../middleware/role.middleware";
 
 const router = Router();
 
-
-
-router.post("/", protect, authorize("owner", "accountant"), createExpense);
-router.get("/", protect, authorize("owner", "accountant"), getExpenses);
-router.get("/:id", protect, authorize("owner", "accountant"), getExpenseById);
-router.put("/:id", protect, authorize("owner", "accountant"), updateExpense);
-router.delete("/:id", protect, authorize("owner", "accountant"), deleteExpense);
+router.post(
+  "/",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  createExpense
+);
+router.get(
+  "/",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  getExpenses
+);
+router.get(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  getExpenseById
+);
+router.put(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  updateExpense
+);
+router.delete(
+  "/:id",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  deleteExpense
+);
 
 export default router;

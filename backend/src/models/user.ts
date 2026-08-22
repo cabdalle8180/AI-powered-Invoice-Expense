@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { USER_ROLES, UserRole } from "../constants/roles";
 
-export const USER_ROLES = ["superAdmin", "owner", "accountant", "customer"] as const;
-export type UserRole = typeof USER_ROLES[number];
+export { USER_ROLES, UserRole };
 
 export interface IUser extends Document {
   name: string;
@@ -10,6 +10,11 @@ export interface IUser extends Document {
   phone?: string;
   role: UserRole;
   businessId?: mongoose.Types.ObjectId;
+  customerId?: mongoose.Types.ObjectId;
+  avatar?: {
+    url: string;
+    public_id?: string;
+  };
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +37,7 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     phone: {
       type: String,
@@ -47,6 +53,22 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: "Business",
       required: false,
+    },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "Customer",
+      required: false,
+      index: true,
+    },
+    avatar: {
+      url: {
+        type: String,
+        trim: true,
+      },
+      public_id: {
+        type: String,
+        trim: true,
+      },
     },
     isActive: {
       type: Boolean,

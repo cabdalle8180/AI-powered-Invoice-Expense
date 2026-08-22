@@ -1,4 +1,9 @@
-export type UserRole = "superAdmin" | "owner" | "accountant" | "customer";
+export type UserRole =
+  | "superAdmin"
+  | "owner"
+  | "accountant"
+  | "staff"
+  | "customer";
 
 export interface User {
   id: string;
@@ -7,6 +12,11 @@ export interface User {
   phone?: string;
   role: UserRole;
   businessId?: string;
+  customerId?: string;
+  avatar?: {
+    url: string;
+    public_id?: string;
+  };
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -17,15 +27,22 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isSessionChecking: boolean;
   error: string | null;
 }
 
-// Expected response structure from your backend
 export interface AuthResponse {
   success: boolean;
   message: string;
   data: {
     user: User;
     token: string;
+  };
+}
+
+export interface MeResponse {
+  success: boolean;
+  data: {
+    user: User;
   };
 }

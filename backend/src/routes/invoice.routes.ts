@@ -7,73 +7,59 @@ import {
   getInvoiceById,
   updateInvoice,
   deleteInvoice,
+  updateInvoiceStatus,
+  sendInvoice,
 } from "../controllers/invoice.controller";
 
 const router = Router();
 
-// ======================================================
-// INVOICE ROUTES
-// ======================================================
-
-/**
- * @route   POST /api/invoices
- * @desc    Create a new invoice
- * @access  Private (Owner, Accountant)
- */
 router.post(
   "/",
   protect,
-  authorize("owner", "accountant"),
+  authorize("superAdmin", "owner", "accountant"),
   createInvoice
 );
 
-/**
- * @route   GET /api/invoices
- * @desc    Get all invoices for a business
- * @access  Private (SuperAdmin, Owner, Accountant)
- */
 router.get(
   "/",
   protect,
-  authorize("superAdmin", "owner", "accountant"),
+  authorize("superAdmin", "owner", "accountant", "staff", "customer"),
   getInvoices
 );
 
-/**
- * @route   GET /api/invoices/:id
- * @desc    Get a single invoice by ID
- * @access  Private (SuperAdmin, Owner, Accountant)
- */
 router.get(
   "/:id",
   protect,
-  authorize("superAdmin", "owner", "accountant"),
+  authorize("superAdmin", "owner", "accountant", "staff", "customer"),
   getInvoiceById
 );
 
-/**
- * @route   PUT /api/invoices/:id
- * @desc    Update an invoice (recalculate totals if items change)
- * @access  Private (Owner, Accountant)
- */
 router.put(
   "/:id",
   protect,
-  authorize("owner", "accountant"),
+  authorize("superAdmin", "owner", "accountant"),
   updateInvoice
 );
 
-/**
- * @route   DELETE /api/invoices/:id
- * @desc    Delete an invoice
- * @access  Private (Owner, Accountant)
- */
 router.delete(
   "/:id",
   protect,
-  authorize("owner", "accountant"),
+  authorize("superAdmin", "owner", "accountant"),
   deleteInvoice
 );
 
+router.patch(
+  "/:id/status",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  updateInvoiceStatus
+);
+
+router.patch(
+  "/:id/send",
+  protect,
+  authorize("superAdmin", "owner", "accountant"),
+  sendInvoice
+);
 
 export default router;

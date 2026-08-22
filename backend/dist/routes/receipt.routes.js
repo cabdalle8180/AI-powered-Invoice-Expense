@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const receipt_controller_1 = require("../controllers/receipt.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const role_middleware_1 = require("../middleware/role.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.protect);
+router.get("/", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff"), receipt_controller_1.getReceipts);
+router.post("/", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff"), receipt_controller_1.createReceipt);
+router.get("/:id", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff"), receipt_controller_1.getReceiptById);
+router.put("/:id", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), receipt_controller_1.updateReceipt);
+router.delete("/:id", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant"), receipt_controller_1.deleteReceipt);
+exports.default = router;

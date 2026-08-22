@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -9,13 +10,16 @@ import {
   BarChart3,
   BrainCircuit,
   Settings,
-  UserCircle,
   Building2,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useAppSelector } from "../hooks/reduxHooks";
+import { useAppDispatch } from "../hooks/reduxHooks";
+import { logout } from "../features/auth/authSlice";
+import { usePermission } from "../hooks/usePermission";
+import { getNavItemsForRole } from "../constants/permissions";
 
 interface NavItemProps {
   name: string;
@@ -38,11 +42,7 @@ const NavItem: React.FC<NavItemProps> = ({ name, icon, to, onClick }) => (
         <div className={`shrink-0 mr-3 ${isActive ? "text-blue-700" : "text-gray-400 group-hover:text-gray-600"}`}>
           {icon}
         </div>
-
-        <span className="whitespace-nowrap overflow-hidden font-medium">
-          {name}
-        </span>
-
+        <span className="whitespace-nowrap overflow-hidden font-medium">{name}</span>
         {isActive && (
           <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-700 rounded-l-md" />
         )}
@@ -51,36 +51,40 @@ const NavItem: React.FC<NavItemProps> = ({ name, icon, to, onClick }) => (
   </NavLink>
 );
 
+const iconMap: Record<string, React.ReactNode> = {
+  Dashboard: <LayoutDashboard size={20} />,
+  "User Management": <Users size={20} />,
+  Businesses: <Building2 size={20} />,
+  Customers: <Users size={20} />,
+  Invoices: <FileText size={20} />,
+  Payments: <Banknote size={20} />,
+  Expenses: <Wallet size={20} />,
+  Receipts: <Receipt size={20} />,
+  Reports: <BarChart3 size={20} />,
+  "AI Insights": <BrainCircuit size={20} />,
+  Settings: <Settings size={20} />,
+};
+
 const Sidebar: React.FC = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { user, role } = usePermission();
 
-  const { user } = useAppSelector((state) => state.auth);
+  const businessName = user?.name ? `${user.name}'s Business` : "My Business";
+  const formattedRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : "User";
 
-  const businessName = user?.business?.name || user?.businessName || "My Business";
-  const role = user?.role || "user";
-  const formattedRole = role.charAt(0).toUpperCase() + role.slice(1);
+  const visibleNavItems = getNavItemsForRole(role);
 
-  const mainNavItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={20} />, to: "/overview" },
-    { name: "Customers", icon: <Users size={20} />, to: "/customers" },
-    { name: "Invoices", icon: <FileText size={20} />, to: "/invoices" },
-    { name: "Payments", icon: <Banknote size={20} />, to: "/payments" },
-    { name: "Expenses", icon: <Wallet size={20} />, to: "/expenses" },
-    { name: "Receipts", icon: <Receipt size={20} />, to: "/receipts" },
-    { name: "Reports", icon: <BarChart3 size={20} />, to: "/reports" },
-    { name: "AI Insights", icon: <BrainCircuit size={20} />, to: "/ai-insights" },
-  ];
-
-  const bottomNavItems = [
-    { name: "Settings", icon: <Settings size={20} />, to: "/settings" },
-    { name: "User Profile", icon: <UserCircle size={20} />, to: "/profile" },
-  ];
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login", { replace: true });
+  };
 
   const handleMobileClose = () => setIsMobileOpen(false);
 
   return (
     <>
-      {/* Mobile Hamburger Button */}
       {!isMobileOpen && (
         <button
           onClick={() => setIsMobileOpen(true)}
@@ -90,7 +94,6 @@ const Sidebar: React.FC = () => {
         </button>
       )}
 
-      {/* Mobile Background Overlay */}
       {isMobileOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
@@ -104,7 +107,6 @@ const Sidebar: React.FC = () => {
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* Mobile Close Button (X) */}
         {isMobileOpen && (
           <button
             onClick={handleMobileClose}
@@ -114,7 +116,6 @@ const Sidebar: React.FC = () => {
           </button>
         )}
 
-        {/* Brand */}
         <div className="h-24 flex items-center px-6 gap-3 mt-6 md:mt-0">
           <div className="bg-[#1e4b6b] text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-lg shrink-0">
             F
@@ -124,33 +125,49 @@ const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Business + Role */}
         <div className="mx-3 mb-4 bg-white border border-gray-200 rounded-xl p-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
-              <Building2 size={18} />
-            </div>
-            <div className="min-w-0">
+            {user?.avatar?.url ? (
+              <img
+                src={user.avatar.url}
+                alt="Avatar"
+                className="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                {user?.name ? user.name.charAt(0).toUpperCase() : <Building2 size={18} />}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-gray-900 truncate">{businessName}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{formattedRole}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                <p className="text-xs font-medium text-gray-500">{formattedRole}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Main Navigation */}
         <nav className="flex-1 overflow-y-auto space-y-1 px-4">
-          {mainNavItems.map((item) => (
-            <NavItem key={item.name} {...item} onClick={handleMobileClose} />
+          {visibleNavItems.map((item) => (
+            <NavItem
+              key={item.name}
+              name={item.name}
+              icon={iconMap[item.name]}
+              to={item.to}
+              onClick={handleMobileClose}
+            />
           ))}
         </nav>
 
-        {/* Bottom Section */}
         <div className="border-t border-gray-200 p-4">
-          <nav className="space-y-1">
-            {bottomNavItems.map((item) => (
-              <NavItem key={item.name} {...item} onClick={handleMobileClose} />
-            ))}
-          </nav>
+          <button
+            onClick={handleLogout}
+            className="w-full group flex items-center rounded-lg px-3 py-2.5 text-gray-600 hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer"
+          >
+            <LogOut size={20} className="mr-3 text-gray-400 group-hover:text-red-600" />
+            <span className="font-medium">Logout</span>
+          </button>
         </div>
       </aside>
     </>

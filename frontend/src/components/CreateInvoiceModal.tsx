@@ -124,7 +124,7 @@
 //                 </option>
 //                 {customers.map((cust) => (
 //                   <option key={cust._id} value={cust._id}>
-//                     {cust.name} {cust.companyName ? `(${cust.companyName})` : ""}
+//                     {cust.name}
 //                   </option>
 //                 ))}
 //               </select>
@@ -414,7 +414,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 </option>
                 {customers.map((cust) => (
                   <option key={cust._id} value={cust._id}>
-                    {cust.name} {cust.companyName ? `(${cust.companyName})` : ""}
+                    {cust.name}
                   </option>
                 ))}
               </select>

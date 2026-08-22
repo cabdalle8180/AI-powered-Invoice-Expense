@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const ai_controller_1 = require("../controllers/ai.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const role_middleware_1 = require("../middleware/role.middleware");
+const upload_middleware_1 = require("../middleware/upload.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.protect);
+router.get("/insights", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff"), ai_controller_1.getAiInsights);
+router.post("/scan-receipt", (0, role_middleware_1.authorize)("superAdmin", "owner", "accountant", "staff"), upload_middleware_1.upload.single("receiptFile"), ai_controller_1.extractExpenseData);
+exports.default = router;

@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "./auth.middleware";
-import { UserRole } from "../models/user";
+import { OfficialRole, rolesMatch, UserRole } from "../constants/roles";
 
 export const authorize = (...allowedRoles: UserRole[]) => {
   return (
@@ -16,7 +16,7 @@ export const authorize = (...allowedRoles: UserRole[]) => {
       return;
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!rolesMatch(req.user.role, ...allowedRoles)) {
       res.status(403).json({
         success: false,
         message: "You do not have permission to access this resource",
@@ -27,3 +27,5 @@ export const authorize = (...allowedRoles: UserRole[]) => {
     next();
   };
 };
+
+export type { OfficialRole };

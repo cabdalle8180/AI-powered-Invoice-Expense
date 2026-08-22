@@ -178,7 +178,7 @@
 
 //   // Client-side search filtering
 //   const filteredPayments = payments.filter((p) => {
-//     const customerName = p.customerId?.name || p.customerId?.companyName || "";
+//     const customerName = p.customerId?.name || "";
 //     const invoiceNum = p.invoiceId?.invoiceNumber || "";
 //     const refNum = p.referenceNumber || "";
 //     return (
@@ -608,7 +608,6 @@ interface Payment {
     _id: string;
     name: string;
     email: string;
-    companyName?: string;
   };
   invoiceId?: {
     _id: string;
@@ -766,7 +765,7 @@ export const PaymentsPage: React.FC = () => {
   };
 
   const filteredPayments = payments.filter((p) => {
-    const customerName = p.customerId?.name || p.customerId?.companyName || "";
+    const customerName = p.customerId?.name || "";
     const invoiceNum = p.invoiceId?.invoiceNumber || "";
     const refNum = p.referenceNumber || "";
     return (

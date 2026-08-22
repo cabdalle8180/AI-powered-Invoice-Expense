@@ -12,12 +12,13 @@ import {
   loginUser,
   clearError,
 } from "../features/auth/authSlice";
+import { getDashboardPath, normalizeRole } from "../constants/permissions";
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, error, token } = useAppSelector(
+  const { isLoading, error, token, user } = useAppSelector(
     (state) => state.auth
   );
 
@@ -29,14 +30,13 @@ export default function LoginPage() {
   // ==========================================
 
   useEffect(() => {
-    if (token) {
+    if (token && user) {
       toast.success("Login successful! Welcome back.");
-
-      navigate("/overview", {
+      navigate(getDashboardPath(normalizeRole(user.role)), {
         replace: true,
       });
     }
-  }, [token, navigate]);
+  }, [token, user, navigate]);
 
   // ==========================================
   // LOGIN ERROR
@@ -53,7 +53,7 @@ export default function LoginPage() {
   // ==========================================
 
   const handleSubmit = (
-    e
+    e: React.FormEvent
   ) => {
     e.preventDefault();
 
@@ -280,26 +280,7 @@ export default function LoginPage() {
 
           </form>
 
-          {/* =====================================
-              REGISTER
-          ====================================== */}
-
-          <div className="mt-8 text-center">
-
-            <p className="text-sm text-gray-600">
-
-              Don't have an account?{" "}
-
-              <Link
-                to="/register"
-                className="font-medium text-[#0ea5e9] hover:text-[#0284c7] transition-colors"
-              >
-                Sign up
-              </Link>
-
-            </p>
-
-          </div>
+          {/* Registration disabled — customers are created by business owners */}
 
         </div>
 

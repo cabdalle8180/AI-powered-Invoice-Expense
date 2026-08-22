@@ -1,9 +1,10 @@
 import { Response } from "express";
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs"; // Hubi inaad import garayso bcrypt
+import bcrypt from "bcryptjs";
 import Business, { IBusiness } from "../models/Business";
 import User from "../models/user";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { uploadToCloudinary, deleteFromCloudinary } from "../service/cloudinary.service";
 
 // HELPERS
 const isNonEmptyString = (val: unknown): val is string => {
@@ -311,3 +312,65 @@ export const toggleBusinessStatus = async (
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+/**
+ * @route   POST /api/businesses/:id/logo
+ * @desc    Upload or replace business logo via Cloudinary
+ * @access  Private (SuperAdmin / Owner)
+ */
+export const uploadBusinessLogo = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      res.status(400).json({ success: false, message: "Invalid business ID" });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ success: false, message: "No logo file uploaded" });
+      return;
+    }
+
+    // Authorization check: SuperAdmin or owner of this business
+    if (req.user?.role !== "superAdmin" && req.user?.businessId !== id) {
+      res.status(403).json({ success: false, message: "Permission denied to update this business logo" });
+      return;
+    }
+
+    const business = await Business.findById(id);
+    if (!business) {
+      res.status(404).json({ success: false, message: "Business not found" });
+      return;
+    }
+
+    const oldPublicId = business.logo?.public_id;
+
+    // 1. Upload new logo to Cloudinary
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "invoice-tracker/logos"
+    );
+
+    // 2. Update database
+    business.logo = { url: result.url, public_id: result.public_id };
+    await business.save();
+
+    // 3. Delete old logo from Cloudinary if exists and differs
+    if (oldPublicId && oldPublicId !== result.public_id) {
+      await deleteFromCloudinary(oldPublicId);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Business logo uploaded successfully",
+      data: { business },
+    });
+  } catch (error) {
+    console.error("UploadBusinessLogo error:", error);
+    res.status(500).json({ success: false, message: "Failed to upload business logo" });
+  }
+};

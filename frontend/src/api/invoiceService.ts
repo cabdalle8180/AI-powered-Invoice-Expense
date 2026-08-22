@@ -253,7 +253,7 @@ export interface InvoiceQueryParams {
 export interface Invoice {
   _id: string;
   businessId: string;
-  customerId: any;
+  customerId: string | { _id?: string; name?: string; email?: string };
   invoiceNumber: string;
   issueDate: string;
   dueDate: string;

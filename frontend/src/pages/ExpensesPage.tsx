@@ -10,7 +10,6 @@ import {
   CreditCard,
   TrendingUp,
   PieChart,
-  Clock,
   Menu,
   X,
   Loader2,
@@ -18,11 +17,8 @@ import {
   Edit3,
   Calendar,
   Building2,
-  Sparkles,
   DollarSign,
   Receipt,
-  ChevronRight,
-  ArrowUpRight,
 } from "lucide-react";
 import {
   getExpenses,
@@ -88,8 +84,11 @@ export default function ExpensesPage() {
       }
       resetForm();
       fetchExpenses();
-    } catch (error) {
-      alert("Qalad ayaa dhacay marka hawsha la fulinayay.");
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        "Qalad ayaa dhacay marka hawsha la fulinayay.";
+      alert(msg);
     }
   };
 

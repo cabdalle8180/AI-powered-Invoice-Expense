@@ -8,7 +8,7 @@ export interface ICustomer extends Document {
   email: string;
   phone?: string;
   address?: string;
-  companyName?: string;
+  position?: string;
   taxNumber?: string;
 
   totalInvoiced: number;
@@ -60,9 +60,10 @@ const customerSchema = new Schema<ICustomer>(
       trim: true,
     },
 
-    companyName: {
+    position: {
       type: String,
       trim: true,
+      default: "customer",
     },
 
     taxNumber: {
